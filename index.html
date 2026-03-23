@@ -6,51 +6,53 @@
 <title>Minhas Finanças</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<!-- Sync via JSONBin.io — no setup needed -->
+<!-- Firebase Realtime Database -->
 <script>
-// JSONBin.io: free cloud key-value store, works from any browser/device
-// Each user code maps to one bin. BIN IDs are stored locally per code.
-const JBIN_KEY='$2a$10$7QwKp3NzM8vR2XcL9sYeHOQnTfVmDkJbWuGpAiE4xZoS1yN6rClP8';
+// Firebase config — Realtime Database
+const FB_URL='https://financeiro-otavio-bf717-default-rtdb.firebaseio.com';
 
+// _cloud: load/save/listen using Firebase REST + SSE
 window._cloud={
+  // Read once
   async load(code){
     try{
-      // Look up bin ID for this code
-      const binId=localStorage.getItem('binid_'+code);
-      if(!binId)return null;
-      const r=await fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest',{
-        headers:{'X-Master-Key':JBIN_KEY,'X-Bin-Meta':'false'}
-      });
+      const r=await fetch(`${FB_URL}/users/${encodeURIComponent(code)}.json`);
       if(!r.ok)return null;
-      const json=await r.json();
-      return json&&json.d?json.d:json;
-    }catch(e){console.warn('cloud load',e);return null;}
+      const data=await r.json();
+      return data; // null if not found, object if exists
+    }catch(e){console.warn('FB load',e);return null;}
   },
+
+  // Write (PUT replaces the whole node)
   async save(code,data){
     try{
-      const binId=localStorage.getItem('binid_'+code);
-      if(binId){
-        // Update existing bin
-        const r=await fetch('https://api.jsonbin.io/v3/b/'+binId,{
-          method:'PUT',
-          headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY},
-          body:JSON.stringify({d:data})
-        });
-        return r.ok;
-      } else {
-        // Create new bin for this code
-        const r=await fetch('https://api.jsonbin.io/v3/b',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','X-Master-Key':JBIN_KEY,'X-Bin-Name':code,'X-Bin-Private':'true'},
-          body:JSON.stringify({d:data})
-        });
-        if(!r.ok)return false;
-        const json=await r.json();
-        const newId=json.metadata&&json.metadata.id;
-        if(newId)localStorage.setItem('binid_'+code,newId);
-        return true;
-      }
-    }catch(e){console.warn('cloud save',e);return false;}
+      const r=await fetch(`${FB_URL}/users/${encodeURIComponent(code)}.json`,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(data)
+      });
+      return r.ok;
+    }catch(e){console.warn('FB save',e);return false;}
+  },
+
+  // Real-time listener via Server-Sent Events (Firebase SSE)
+  listen(code,cb){
+    try{
+      if(window._fbSse){window._fbSse.close();}
+      const url=`${FB_URL}/users/${encodeURIComponent(code)}.json`;
+      const sse=new EventSource(url);
+      window._fbSse=sse;
+      sse.addEventListener('put',e=>{
+        try{
+          const msg=JSON.parse(e.data);
+          // msg.path === '/' means full data replaced
+          if(msg&&msg.data&&msg.data.fixed){
+            cb(msg.data);
+          }
+        }catch(err){}
+      });
+      sse.onerror=()=>{}; // silent — we still have local data
+    }catch(e){console.warn('FB listen',e);}
   }
 };
 </script>
@@ -551,13 +553,13 @@ async function startApp(){
   document.getElementById('fDate').value=todayStr();
   document.getElementById('iMonth').value=mKey(todayDate.getFullYear(),todayDate.getMonth());
 
-  // Always load from localStorage first so UI is instant
+  // 1. Show local data immediately (instant UI)
   const local=localStorage.getItem('fin_'+userCode);
   if(local){try{D=JSON.parse(local);}catch(e){D=seedData();}}
   else{D=seedData();}
   renderAll();
 
-  // Then try to sync from cloud
+  // 2. Load from Firebase (source of truth)
   setSyncStatus('saving');
   try{
     const cloud=await window._cloud.load(userCode);
@@ -565,14 +567,26 @@ async function startApp(){
       D=cloud;
       localStorage.setItem('fin_'+userCode,JSON.stringify(D));
       renderAll();
+      setSyncStatus('ok');
     } else {
-      // First time on this device — push local data to cloud
-      await window._cloud.save(userCode,D);
+      // First time: push local/seed data to Firebase
+      const ok=await window._cloud.save(userCode,D);
+      setSyncStatus(ok?'ok':'offline');
     }
-    setSyncStatus('ok');
   }catch(e){
     setSyncStatus('offline');
   }
+
+  // 3. Subscribe to real-time changes (other devices)
+  window._cloud.listen(userCode,(payload)=>{
+    // Only update if data is actually different (avoid loop)
+    if(JSON.stringify(payload)!==JSON.stringify(D)){
+      D=payload;
+      localStorage.setItem('fin_'+userCode,JSON.stringify(D));
+      renderAll();
+    }
+    setSyncStatus('ok');
+  });
 }
 
 function seedData(){
@@ -608,6 +622,8 @@ function seedData(){
 
 function logout(){
   if(!confirm('Sair da conta '+userCode+'?'))return;
+  // Close real-time listener
+  if(window._fbSse){window._fbSse.close();window._fbSse=null;}
   userCode='';
   localStorage.removeItem('fin_code');
   D={fixed:[],card:[],months:{},investments:[]};
