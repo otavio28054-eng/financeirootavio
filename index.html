@@ -20,71 +20,42 @@ input,select,button{font-family:inherit;}
 
 .container{max-width:480px;margin:0 auto;padding:20px;min-height:100vh;display:flex;flex-direction:column;}
 
-/* Login */
-#loginScreen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:40px;}
-.login-card{background:var(--surface);padding:32px;border-radius:24px;border:1px solid var(--border);width:100%;max-width:340px;text-align:center;}
-.login-card h1{font-size:1.5rem;margin-bottom:8px;letter-spacing:-0.03em;}
-.login-card p{color:var(--text3);font-size:0.85rem;margin-bottom:24px;}
-.login-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px;color:var(--text);text-align:center;font-size:1.2rem;font-weight:700;letter-spacing:0.2em;margin-bottom:16px;outline:none;}
-.login-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:12px;padding:14px;font-weight:700;cursor:pointer;transition:transform 0.2s;}
-.login-btn:active{transform:scale(0.98);}
-
-/* Header */
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
-.user-badge{display:flex;align-items:center;gap:8px;background:var(--surface);padding:6px 12px;border-radius:100px;border:1px solid var(--border);font-size:0.75rem;font-family:'DM Mono',monospace;}
-.sync-status{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.logo{font-weight:800; font-size:1.2rem; letter-spacing:-0.04em;}
 
 .month-nav{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:24px;}
 .month-nav button{background:none;border:none;color:var(--text);cursor:pointer;padding:8px;}
 .cur-month{font-size:1.1rem;font-weight:700;min-width:140px;text-align:center;}
 
-/* Summary */
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
 .sum-card{background:var(--surface);padding:16px;border-radius:20px;border:1px solid var(--border);}
 .sum-label{font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
 .sum-val{font-size:1.1rem;font-weight:700;font-family:'DM Mono',monospace;}
 .sum-card.main{grid-column:span 2;background:var(--text);color:var(--bg);border:none;}
 
-/* Tabs */
 .tabs{display:flex;gap:4px;background:var(--surface);padding:4px;border-radius:14px;margin-bottom:24px;overflow-x:auto;}
 .tab{flex:1;padding:10px;border-radius:10px;border:none;background:none;color:var(--text3);font-size:0.75rem;font-weight:600;cursor:pointer;white-space:nowrap;}
 .tab.active{background:var(--surface2);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,0.2);}
 
-/* Forms */
 .form-card{background:var(--surface);padding:20px;border-radius:24px;border:1px solid var(--border);margin-bottom:24px;}
 .input-group{margin-bottom:16px;}
 label{display:block;font-size:0.75rem;color:var(--text3);margin-bottom:6px;font-weight:600;}
 input,select{width:100%;background:var(--surface2);border:1px solid var(--border2);padding:12px;border-radius:12px;color:var(--text);font-size:0.9rem;outline:none;}
 .btn-add{width:100%;background:var(--green);color:var(--bg);border:none;padding:14px;border-radius:12px;font-weight:800;cursor:pointer;}
 
-/* Items */
 .item-card{background:var(--surface);padding:14px;border-radius:16px;border:1px solid var(--border);margin-bottom:10px;font-size:0.9rem;}
 .val-in{color:var(--green-text);}
 .val-out{color:var(--red-text);}
 .hidden{display:none;}
-
 #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 24px;border-radius:100px;font-weight:700;font-size:0.8rem;z-index:2000;opacity:0;pointer-events:none;transition:all 0.3s;}
 #toast.show{opacity:1;bottom:40px;}
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <div class="login-card">
-    <h1>Finanças</h1>
-    <p>Digite seu código de acesso</p>
-    <input type="text" id="loginCode" class="login-input" placeholder="XXXX" maxlength="8">
-    <button onclick="doLogin()" class="login-btn" id="btnLogin">ENTRAR</button>
-  </div>
-</div>
-
-<div class="container" id="mainApp" style="display:none">
+<div class="container" id="mainApp">
   <header>
-    <div style="font-weight:800; font-size:1.2rem; letter-spacing:-0.04em;">OTÁVIO.FIN</div>
-    <div class="user-badge" id="syncBadge">
-      <div class="sync-status"></div>
-      <span id="userCodeBadge">----</span>
-    </div>
+    <div class="logo">OTÁVIO.FIN</div>
   </header>
 
   <div class="month-nav">
@@ -111,8 +82,6 @@ input,select{width:100%;background:var(--surface2);border:1px solid var(--border
   <div class="tabs">
     <button class="tab active" onclick="goTab('quick', this)">Lançar</button>
     <button class="tab" onclick="goTab('detail', this)">Extrato</button>
-    <button class="tab" onclick="goTab('charts', this)">Gráficos</button>
-    <button class="tab" onclick="goTab('annual', this)">Visão Anual</button>
     <button class="tab" onclick="goTab('invest', this)">Investimentos</button>
   </div>
 
@@ -150,19 +119,6 @@ input,select{width:100%;background:var(--surface2);border:1px solid var(--border
     <div id="detailList"></div>
   </div>
 
-  <div id="tab-charts" class="tab-content hidden">
-    <div class="form-card" style="padding:10px;">
-      <canvas id="chartPie" height="250"></canvas>
-    </div>
-    <div class="form-card" style="padding:10px;">
-      <canvas id="chartBar" height="200"></canvas>
-    </div>
-  </div>
-
-  <div id="tab-annual" class="tab-content hidden">
-    <div id="annualGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;"></div>
-  </div>
-
   <div id="tab-invest" class="tab-content hidden">
     <div class="form-card">
       <div class="input-group"><label>Ativo</label><input type="text" id="iName" placeholder="Ex: PETR4"></div>
@@ -179,36 +135,17 @@ input,select{width:100%;background:var(--surface2);border:1px solid var(--border
 <div id="toast"></div>
 
 <script>
-/* ── LÓGICA DO SITE (CORE) ── */
-
+/* ── LÓGICA PRINCIPAL (SEM LOGIN) ── */
 window.data = { items:[], invest:[] };
-window.userCode = "";
+window.userCode = "MEU_FINANCEIRO_PADRAO"; // Identificador único automático
 let viewY = new Date().getFullYear();
 let viewM = new Date().getMonth();
-let curTab = 'quick';
 
-const fmt = v => v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt = v => (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtDay = d => {
   const date = new Date(d + 'T12:00:00');
   return date.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
 };
-
-function doLogin(){
-  const code = document.getElementById('loginCode').value.trim().toUpperCase();
-  if(!code){ toast('Digite um código'); return; }
-  
-  window.userCode = code;
-  localStorage.setItem('last_finance_code', code);
-  
-  if(window.initFirebaseSync) window.initFirebaseSync(code);
-
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('mainApp').style.display='block';
-  document.getElementById('userCodeBadge').textContent = code;
-  
-  document.getElementById('qDate').valueAsDate = new Date();
-  renderAll();
-}
 
 function saveData(){
   if(window.saveToFirebase) window.saveToFirebase(window.data);
@@ -219,35 +156,17 @@ function addEntry(){
   const val = parseFloat(document.getElementById('qVal').value);
   const cat = document.getElementById('qCat').value;
   const date = document.getElementById('qDate').value;
-
   if(!desc || isNaN(val) || !date) return;
-
   window.data.items.push({ id:Date.now(), date, desc, val, cat });
   saveData();
-  document.getElementById('qDesc').value='';
-  document.getElementById('qVal').value='';
+  document.getElementById('qDesc').value=''; document.getElementById('qVal').value='';
   renderAll();
-  toast('Lançamento salvo!');
+  toast('Salvo com sucesso!');
 }
 
 function deleteItem(id){
   window.data.items = window.data.items.filter(i => i.id !== id);
   saveData();
-  renderAll();
-}
-
-function addInvest(){
-  const name = document.getElementById('iName').value.trim().toUpperCase();
-  const qty = parseFloat(document.getElementById('iQty').value);
-  const prc = parseFloat(document.getElementById('iPrice').value);
-  if(!name || isNaN(qty) || isNaN(prc)) return;
-  
-  if(!window.data.invest) window.data.invest = [];
-  window.data.invest.push({ id:Date.now(), name, qty, prc });
-  saveData();
-  document.getElementById('iName').value='';
-  document.getElementById('iQty').value='';
-  document.getElementById('iPrice').value='';
   renderAll();
 }
 
@@ -259,26 +178,21 @@ function changeMonth(dir){
 }
 
 function goTab(t, el){
-  curTab = t;
   document.querySelectorAll('.tab-content').forEach(d=>d.classList.add('hidden'));
   document.getElementById('tab-'+t).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
-  renderAll();
 }
 
 function renderSummary(){
   const months = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
   document.getElementById('curMonth').textContent = `${months[viewM]} ${viewY}`;
-
-  const filtered = window.data.items.filter(i => {
+  const filtered = (window.data.items || []).filter(i => {
     const d = new Date(i.date + 'T12:00:00');
     return d.getFullYear() === viewY && d.getMonth() === viewM;
   });
-
   const inc = filtered.filter(i=>i.val > 0).reduce((a,b)=>a+b.val,0);
   const out = filtered.filter(i=>i.val < 0).reduce((a,b)=>a+b.val,0);
-  
   document.getElementById('sumIn').textContent = 'R$ '+fmt(inc);
   document.getElementById('sumOut').textContent = 'R$ '+fmt(Math.abs(out));
   document.getElementById('sumTotal').textContent = 'R$ '+fmt(inc+out);
@@ -287,7 +201,7 @@ function renderSummary(){
 function renderQuick(){
   const list = document.getElementById('quickList');
   list.innerHTML = '';
-  const filtered = window.data.items.filter(i => {
+  const filtered = (window.data.items || []).filter(i => {
     const d = new Date(i.date + 'T12:00:00');
     return d.getFullYear() === viewY && d.getMonth() === viewM;
   }).sort((a,b)=> new Date(b.date) - new Date(a.date));
@@ -303,61 +217,24 @@ function renderQuick(){
         </div>
         <div style="display:flex; align-items:center; gap:12px;">
           <span class="${i.val>0?'val-in':'val-out'}" style="font-weight:800; font-family:'DM Mono'">${i.val>0?'+':''}${fmt(i.val)}</span>
-          <button onclick="deleteItem(${i.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.1rem;">✕</button>
+          <button onclick="deleteItem(${i.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;">✕</button>
         </div>
       </div>`;
     list.appendChild(div);
   });
 }
 
-function renderInvest(){
-  const list = document.getElementById('investList');
-  list.innerHTML = '';
-  if(!window.data.invest) return;
-  window.data.invest.forEach(i => {
-    const div = document.createElement('div');
-    div.className = 'item-card';
-    div.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-weight:800; color:var(--blue-text)">${i.name}</div>
-          <div style="font-size:0.7rem; color:var(--text3)">${i.qty} un • PM R$ ${fmt(i.prc)}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-weight:800; font-family:'DM Mono'">R$ ${fmt(i.qty * i.prc)}</div>
-          <button onclick="deleteInvest(${i.id})" style="background:none;border:none;color:var(--text3);font-size:0.8rem;">Remover</button>
-        </div>
-      </div>`;
-    list.appendChild(div);
-  });
-}
-function deleteInvest(id){
-  window.data.invest = window.data.invest.filter(i=>i.id !== id);
-  saveData();
-  renderAll();
-}
-
+function renderAll(){ renderSummary(); renderQuick(); }
 function toast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2000);
 }
 
-function renderAll(){
-  renderSummary();
-  renderQuick();
-  renderInvest();
-  // Aqui você pode adicionar renderCharts() e renderAnnual() se desejar
-}
-
-// Auto-login
-window.addEventListener('DOMContentLoaded', () => {
-  const lastCode = localStorage.getItem('last_finance_code');
-  if(lastCode){
-    document.getElementById('loginCode').value = lastCode;
-    doLogin();
-  }
-});
+window.onload = () => {
+  document.getElementById('qDate').valueAsDate = new Date();
+  renderAll();
+};
 </script>
 
 <script type="module">
@@ -378,23 +255,18 @@ window.addEventListener('DOMContentLoaded', () => {
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  window.saveToFirebase = function(dados) {
-    if (!window.userCode) return;
+  window.saveToFirebase = (dados) => {
     set(ref(db, 'users/' + window.userCode), dados);
   };
 
-  window.initFirebaseSync = function(code) {
-    onValue(ref(db, 'users/' + code), (snapshot) => {
-      const cloudData = snapshot.val();
-      if (cloudData) {
-        window.data.items = cloudData.items ? Object.values(cloudData.items) : [];
-        window.data.invest = cloudData.invest ? Object.values(cloudData.invest) : [];
-        renderAll();
-        console.log("Firebase: Sincronizado!");
-      }
-    });
-  };
+  onValue(ref(db, 'users/' + window.userCode), (snapshot) => {
+    const cloudData = snapshot.val();
+    if (cloudData) {
+      window.data.items = cloudData.items ? Object.values(cloudData.items) : [];
+      window.data.invest = cloudData.invest ? Object.values(cloudData.invest) : [];
+      renderAll();
+    }
+  });
 </script>
-
 </body>
 </html>
